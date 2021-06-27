@@ -35,7 +35,7 @@ protected:
 	{
 		// The display will be split into equally sized vertical strips
 		// Each strip will carry an obstacle for flappy bird to overcome
-		// // Change the length of listSection to change number of obstacles
+		// Change the length of listSection to change number of obstacles
 		// Begin with no obstacles, to give Flappy a chance..!
 		listSection = { 0, 0, 0 };
 		fSectionWidth = (float)ScreenWidth() / (float)(listSection.size() - 1);
@@ -58,10 +58,11 @@ protected:
 			nAttemptCount++;
 		}
 
-		// Create game over pause screen
+		// Create "game over" pause screen
 		if (hasCollided)
 		{
-			// Do nothing util player releases the space key
+			DrawString(35, 24, "Game Over")
+			DrawString(28, 28, "Press space to restart")
 			if (m_keys[VK_SPACE].bReleased)
 				resetGame = true;
 		}
