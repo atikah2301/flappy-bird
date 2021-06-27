@@ -13,21 +13,34 @@ public:
 	}
 
 private:
+	// Vertical movement physics
 	float fBirdPosition = 0.0f;
 	float fBirdVelocity = 0.0f;
 	float fBirdAcceleration = 0.0f;
-	
 	float fGravity = 100.0f;
+
+	float fSectionWidth;
+	list<int> listSection;
+	float fLevelPosition = 0.0f;
 
 protected:
 	virtual bool OnUserCreate()
 	{
+		// The display will be split into equally sized vertical strips
+		// Each strip will carry an obstacle for flappy bird to overcome
+		// // Change the length of listSection to change number of obstacles
+		// Begin with no obstacles, to give Flappy a chance..!
+		listSection = { 0, 0, 0 };
+		fSectionWidth = (float)ScreenWidth() / (float)(listSection.size() - 1);
+
 		return true;
 	}
 
 	virtual bool OnUserUpdate(float fElapsedTime)
 	{
-		if (m_keys[VK_SPACE].bPressed)
+		// Flapping with space key
+		// Limit flapping by introducing a condition on current velocity
+		if (m_keys[VK_SPACE].bPressed && fBirdVelocity >= fGravity / 10.0f)
 		{
 			// Enable bird to have upward thrust from flap
 			fBirdAcceleration = 0.0f;
@@ -50,9 +63,40 @@ protected:
 		fBirdVelocity += fBirdAcceleration * fElapsedTime;
 		fBirdPosition += fBirdVelocity * fElapsedTime;
 
+		// Speed of screen movement
+		fLevelPosition += 14.0f * fElapsedTime;
+
+		// Fix offset and create the "converyer belt" using listSection
+		if (fLevelPosition > fSectionWidth)
+		{
+			fLevelPosition -= fSectionWidth;
+			listSection.pop_front();
+
+			// Randomly set the obstacle height
+			// Occasionally leave out obstacles to give bird a break :)
+			int obsHeight = rand() % (ScreenHeight() - 20);
+			if (obsHeight <= 10) obsHeight = 0;
+			listSection.push_back(obsHeight);
+		}
+
 		// Clear the display before drawing
 		Fill(0, 0, ScreenWidth(), ScreenHeight(), L' ');
 
+		// Draw obstacles
+		int nSection = 0;
+		int gap = 15;
+		int obsWidth = 20;
+		for (auto s : listSection)
+		{
+			if (s != 0)
+			{
+				Fill(nSection * fSectionWidth + gap - fLevelPosition, ScreenHeight() - s, nSection * fSectionWidth + obsWidth - fLevelPosition, ScreenHeight(), PIXEL_SOLID, FG_GREEN);
+				Fill(nSection * fSectionWidth + gap - fLevelPosition, 0, nSection * fSectionWidth + obsWidth - fLevelPosition, ScreenHeight() - s - obsWidth, PIXEL_SOLID, FG_GREEN);
+			}
+			nSection++;
+		}
+
+		// Bird's x-axis positioning
 		int nBirdX = (int)(ScreenWidth() / 3.0f);
 
 		// Draw flappy bird
